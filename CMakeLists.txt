@@ -17,6 +17,7 @@ pico_sdk_init()
 add_executable(${CMAKE_PROJECT_NAME}
     dht_wifi.c
     tcp_client.c
+    dhtlib.c
 )
 
 pico_enable_stdio_usb(${CMAKE_PROJECT_NAME} 1)

@@ -12,7 +12,7 @@ typedef struct TCP_CLIENT_T_ {
 } TCP_CLIENT_T;
 
 
-TCP_CLIENT_T * tcp_client_init(void);
+TCP_CLIENT_T* tcp_client_init(char* data, int len);
 
 bool tcp_client_connect(TCP_CLIENT_T* client);
 

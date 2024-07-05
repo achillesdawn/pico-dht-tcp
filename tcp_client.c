@@ -77,7 +77,7 @@ err_t tcp_client_on_connected(void* arg, struct tcp_pcb* tpcb, err_t err) {
     return ERR_OK;
 }
 
-TCP_CLIENT_T* tcp_client_init(void) {
+TCP_CLIENT_T* tcp_client_init(char* data, int len) {
     TCP_CLIENT_T* client = calloc(1, sizeof(TCP_CLIENT_T));
     if (!client) {
         printf("failed to allocate state\n");
@@ -96,8 +96,9 @@ TCP_CLIENT_T* tcp_client_init(void) {
 
     ip4addr_aton(TCP_SERVER_IP, &client->remote_addr);
 
-    strcpy(client->buffer, "picopicopicopico\n");
-    client->buffer_len = strlen(client->buffer);
+    strncpy(client->buffer, data, len);
+    
+    client->buffer_len = len;
 
     return client;
 }
