@@ -11,8 +11,7 @@
 #include "ssid.h"
 
 const uint8_t YELLOW_LED = 15;
-const uint8_t WHITE_LED = 14;
-const uint8_t DHT_PIN = 21;
+const uint8_t DHT_PIN = 18;
 
 volatile bool yellow_led_state = false;
 
@@ -79,9 +78,6 @@ void setup() {
     gpio_set_dir(YELLOW_LED, GPIO_OUT);
     gpio_put(YELLOW_LED, true);
 
-    gpio_init(WHITE_LED);
-    gpio_set_dir(WHITE_LED, GPIO_OUT);
-    gpio_put(WHITE_LED, true);
 
     gpio_init(DHT_PIN);
     gpio_set_dir(DHT_PIN, GPIO_OUT);
@@ -107,6 +103,6 @@ int main() {
         }
         free(dht);
 
-        sleep_ms(8000);
+        sleep_ms(15000);
     }
 }

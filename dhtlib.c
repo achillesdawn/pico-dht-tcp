@@ -1,12 +1,12 @@
-#include "dhtlib.h"
-
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
 
 #include "pico/stdlib.h"
 
-#define DHT_PIN 21
+#include "dhtlib.h"
+
+#define DHT_PIN 18
 
 volatile bool ready = false;
 
@@ -141,6 +141,7 @@ DhtData* dht_init_sequence() {
     set_irq(false);
     end_sequence();
 
+    printf("Validating\n");
     if (validate(data)) {
         print_array(data, 5);
  

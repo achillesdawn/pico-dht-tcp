@@ -129,7 +129,7 @@ bool tcp_client_connect(TCP_CLIENT_T* client) {
     while (!client->complete) {
         
         printf("waiting\n");    
-        sleep_ms(1000);
+        sleep_ms(200);
         
     }
     printf("DONE");
