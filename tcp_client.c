@@ -1,6 +1,7 @@
 #include "string.h"
 
 #include "pico/cyw43_arch.h"
+#include "pico/lwip_nosys.h"
 #include "pico/malloc.h"
 #include "pico/stdlib.h"
 
@@ -105,7 +106,9 @@ static err_t tcp_client_close(void *arg) {
 }
 
 TCP_CLIENT_T *tcp_client_init(char *data, int len) {
+
     TCP_CLIENT_T *client = calloc(1, sizeof(TCP_CLIENT_T));
+
     if (!client) {
         printf("failed to allocate state\n");
         return NULL;
@@ -137,6 +140,7 @@ bool tcp_client_connect(TCP_CLIENT_T *client) {
         ip4addr_ntoa(&client->remote_addr),
         TCP_PORT
     );
+
     cyw43_arch_lwip_begin();
     err_t err = tcp_connect(
         client->tcp_pcb, &client->remote_addr, TCP_PORT, tcp_client_on_connected
@@ -169,7 +173,7 @@ bool tcp_client_connect(TCP_CLIENT_T *client) {
 
     cyw43_arch_lwip_begin();
     err = tcp_client_close(client);
-    
+
     if (err != ERR_OK) {
         printf("error closing tcp client, error number %d\n", err);
     } else {
@@ -177,7 +181,8 @@ bool tcp_client_connect(TCP_CLIENT_T *client) {
     }
     cyw43_arch_lwip_end();
 
-    cyw43_arch_deinit();
+    async_context_t *context = cyw43_arch_async_context();
+    lwip_nosys_deinit(context);
 
     return true;
 }

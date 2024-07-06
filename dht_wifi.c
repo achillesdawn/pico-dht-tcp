@@ -65,14 +65,19 @@ bool send(DhtData *dht) {
 
     int written =
         sprintf(buffer, "H_%f\nT_%f\n", dht->humidity, dht->temperature);
+
     if (written > 0) {
         printf("wrote %d into the buffer", written);
+    } else {
+        printf("wrote 0 into the buffer, cancelling send");
+        return false;
     }
 
     TCP_CLIENT_T *client = tcp_client_init(buffer, written);
     bool result = tcp_client_connect(client);
 
     free(dht);
+    sleep_ms(2000);
     free(client);
 
     if (!result) {
@@ -120,7 +125,9 @@ int main() {
                 send(dht);
             }
         }
-        printf("sleeping for 10s\n");
-        sleep_ms(10000);
+        for (uint8_t i = 0; i < 5; i++) {
+            printf("sleeping for 2 seconds");
+            sleep_ms(2000);
+        }
     }
 }
