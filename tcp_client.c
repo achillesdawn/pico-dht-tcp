@@ -1,8 +1,8 @@
 #include "string.h"
 
-#include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
 #include "pico/malloc.h"
+#include "pico/stdlib.h"
 
 #include "lwip/pbuf.h"
 #include "lwip/tcp.h"
@@ -12,24 +12,26 @@
 const char TCP_SERVER_IP[] = "192.168.2.19";
 const u16_t TCP_PORT = 9988;
 
-static err_t tcp_client_sent(void* arg, struct tcp_pcb* tpcb, u16_t len) {
-    
+static err_t tcp_client_sent(void *arg, struct tcp_pcb *tpcb, u16_t len) {
+
     printf("sent %d", len);
-    TCP_CLIENT_T* client = (TCP_CLIENT_T*)arg;
+    TCP_CLIENT_T *client = (TCP_CLIENT_T *)arg;
 
     return ERR_OK;
 }
 
-static err_t tcp_client_recv(void* arg, struct tcp_pcb* tpcb, struct pbuf* packet_buffer, err_t err) {
+static err_t tcp_client_recv(
+    void *arg, struct tcp_pcb *tpcb, struct pbuf *packet_buffer, err_t err
+) {
     /*
     API implementation details are in the section 'Receiving TCP data':
     https://www.nongnu.org/lwip/2_0_x/raw_api.html
     */
-    TCP_CLIENT_T* client = (TCP_CLIENT_T*)arg;
+    TCP_CLIENT_T *client = (TCP_CLIENT_T *)arg;
 
     cyw43_arch_lwip_check();
     if (!packet_buffer) {
-        // The callback function will be passed a NULL pbuf 
+        // The callback function will be passed a NULL pbuf
         // to indicate that the remote host has closed the connection.
         printf("CONNECTION CLOSED");
     }
@@ -37,9 +39,10 @@ static err_t tcp_client_recv(void* arg, struct tcp_pcb* tpcb, struct pbuf* packe
     if (packet_buffer->tot_len > 0) {
         printf("recv %d err %d\n", packet_buffer->tot_len, err);
 
-        for (struct pbuf* packet = packet_buffer; packet != NULL; packet = packet->next) {
+        for (struct pbuf *packet = packet_buffer; packet != NULL;
+             packet = packet->next) {
 
-            const char* payload = (char*)packet->payload;
+            const char *payload = (char *)packet->payload;
             char message[packet->len];
             strncpy(message, payload, packet->len);
             printf("%s\n", message);
@@ -60,12 +63,11 @@ static err_t tcp_client_recv(void* arg, struct tcp_pcb* tpcb, struct pbuf* packe
     // free the pbuf so that lwIP core code can store it.
     pbuf_free(packet_buffer);
 
-
     return ERR_OK;
 }
 
-err_t tcp_client_on_connected(void* arg, struct tcp_pcb* tpcb, err_t err) {
-    TCP_CLIENT_T* client = (TCP_CLIENT_T*)arg;
+err_t tcp_client_on_connected(void *arg, struct tcp_pcb *tpcb, err_t err) {
+    TCP_CLIENT_T *client = (TCP_CLIENT_T *)arg;
     if (err != ERR_OK) {
         printf("connect failed %d\n", err);
         return err;
@@ -77,8 +79,33 @@ err_t tcp_client_on_connected(void* arg, struct tcp_pcb* tpcb, err_t err) {
     return ERR_OK;
 }
 
-TCP_CLIENT_T* tcp_client_init(char* data, int len) {
-    TCP_CLIENT_T* client = calloc(1, sizeof(TCP_CLIENT_T));
+static err_t tcp_client_close(void *arg) {
+
+    printf("Closing client\n");
+
+    TCP_CLIENT_T *client = (TCP_CLIENT_T *)arg;
+    err_t err = ERR_OK;
+    if (client->tcp_pcb != NULL) {
+
+        tcp_arg(client->tcp_pcb, NULL);
+        tcp_poll(client->tcp_pcb, NULL, 0);
+        tcp_sent(client->tcp_pcb, NULL);
+        tcp_recv(client->tcp_pcb, NULL);
+        tcp_err(client->tcp_pcb, NULL);
+
+        err = tcp_close(client->tcp_pcb);
+        if (err != ERR_OK) {
+            printf("close failed %d, calling abort\n", err);
+            tcp_abort(client->tcp_pcb);
+            err = ERR_ABRT;
+        }
+        // client->tcp_pcb = NULL;
+    }
+    return err;
+}
+
+TCP_CLIENT_T *tcp_client_init(char *data, int len) {
+    TCP_CLIENT_T *client = calloc(1, sizeof(TCP_CLIENT_T));
     if (!client) {
         printf("failed to allocate state\n");
         return NULL;
@@ -97,42 +124,60 @@ TCP_CLIENT_T* tcp_client_init(char* data, int len) {
     ip4addr_aton(TCP_SERVER_IP, &client->remote_addr);
 
     strncpy(client->buffer, data, len);
-    
+
     client->buffer_len = len;
 
     return client;
 }
 
-bool tcp_client_connect(TCP_CLIENT_T* client) {
+bool tcp_client_connect(TCP_CLIENT_T *client) {
 
-    printf("Connecting to %s port %d\n", ip4addr_ntoa(&client->remote_addr), TCP_PORT);
+    printf(
+        "Connecting to %s port %d\n",
+        ip4addr_ntoa(&client->remote_addr),
+        TCP_PORT
+    );
     cyw43_arch_lwip_begin();
-    err_t err = tcp_connect(client->tcp_pcb, &client->remote_addr, TCP_PORT, tcp_client_on_connected);
+    err_t err = tcp_connect(
+        client->tcp_pcb, &client->remote_addr, TCP_PORT, tcp_client_on_connected
+    );
     if (err != ERR_OK) {
-        printf("CONNECT ERROR, error number %d", err);
+        printf("CONNECT ERROR, error number %d\n", err);
         return false;
     }
 
-    err = tcp_write(client->tcp_pcb, client->buffer, client->buffer_len, TCP_WRITE_FLAG_COPY);
+    err = tcp_write(
+        client->tcp_pcb, client->buffer, client->buffer_len, TCP_WRITE_FLAG_COPY
+    );
+
     if (err != ERR_OK) {
-        printf("WRITE ERROR CODE %d", err);
+        printf("WRITE ERROR CODE %d\n", err);
         return false;
     }
 
     err = tcp_output(client->tcp_pcb);
     if (err != ERR_OK) {
-        printf("TCP OUTPUT ERR CODE %d", err);
+        printf("TCP OUTPUT ERR CODE %d\n", err);
         return false;
     }
     cyw43_arch_lwip_end();
 
     while (!client->complete) {
-        
-        printf("waiting\n");    
+        printf("waiting\n");
         sleep_ms(200);
-        
     }
-    printf("DONE");
+
+    cyw43_arch_lwip_begin();
+    err = tcp_client_close(client);
+    
+    if (err != ERR_OK) {
+        printf("error closing tcp client, error number %d\n", err);
+    } else {
+        printf("ALL DONE\n");
+    }
+    cyw43_arch_lwip_end();
+
+    cyw43_arch_deinit();
 
     return true;
 }

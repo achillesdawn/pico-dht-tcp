@@ -1,6 +1,6 @@
-#include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "pico/stdlib.h"
 
@@ -38,9 +38,9 @@ DhtData dht11_convert(uint8_t arr[]) {
     return data;
 }
 
-DhtData* dht22_convert(uint8_t arr[]) {
+DhtData *dht22_convert(uint8_t arr[]) {
 
-    DhtData* dht_data = (DhtData*)malloc(sizeof(DhtData));
+    DhtData *dht_data = (DhtData *)malloc(sizeof(DhtData));
 
     dht_data->humidity = (arr[0] << 8) + arr[1];
     dht_data->humidity /= 10;
@@ -51,8 +51,8 @@ DhtData* dht22_convert(uint8_t arr[]) {
 }
 
 /// @brief waits for a value read at the gpio pin within a time limit
-/// @param dht pin to read from 
-/// @param wait_value 
+/// @param dht pin to read from
+/// @param wait_value
 /// @return returns true if value was read within time limit, else returns false
 bool wait_for_value(bool wait_value) {
     bool value;
@@ -99,8 +99,7 @@ void set_irq(bool enable) {
         gpio_set_irq_enabled(DHT_PIN, GPIO_IRQ_EDGE_RISE, true);
         irq_set_enabled(IO_IRQ_BANK0, true);
         gpio_set_irq_callback(gpio_callback);
-    }
-    else {
+    } else {
         gpio_set_irq_enabled(DHT_PIN, GPIO_IRQ_EDGE_RISE, false);
         irq_set_enabled(IO_IRQ_BANK0, false);
     }
@@ -111,7 +110,7 @@ void end_sequence() {
     gpio_put(DHT_PIN, true);
 }
 
-DhtData* dht_init_sequence() {
+DhtData *dht_init_sequence() {
 
     printf("initializing dht sequence\n");
 
@@ -119,7 +118,7 @@ DhtData* dht_init_sequence() {
 
     set_irq(true);
 
-    uint8_t data[5] = { 0, 0, 0, 0 ,0 };
+    uint8_t data[5] = {0, 0, 0, 0, 0};
     uint8_t bits_read = 0;
     bool signal = true;
     ready = false;
@@ -132,8 +131,7 @@ DhtData* dht_init_sequence() {
             data[bits_read / 8] |= signal << (7 - (bits_read % 8));
             bits_read += 1;
             ready = false;
-        }
-        else {
+        } else {
             sleep_us(3);
         }
     }
@@ -144,13 +142,12 @@ DhtData* dht_init_sequence() {
     printf("Validating\n");
     if (validate(data)) {
         print_array(data, 5);
- 
-        DhtData* dht_data = dht22_convert(data);
+
+        DhtData *dht_data = dht22_convert(data);
         print_data(*dht_data);
 
         return dht_data;
-    }
-    else {
+    } else {
         printf("Validation Failed\n");
         print_array(data, 5);
         return NULL;
