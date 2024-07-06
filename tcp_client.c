@@ -49,7 +49,7 @@ static err_t tcp_client_recv(
             printf("%s\n", message);
 
             if (strcmp(message, "HELLO FROM GO") == 0) {
-                printf("MESSAGE ACKNOWLEDGED, COMPLETING");
+                printf("MESSAGE ACKNOWLEDGED, COMPLETING\n");
                 client->complete = true;
             }
         }
@@ -181,8 +181,7 @@ bool tcp_client_connect(TCP_CLIENT_T *client) {
     }
     cyw43_arch_lwip_end();
 
-    async_context_t *context = cyw43_arch_async_context();
-    lwip_nosys_deinit(context);
+    cyw43_arch_deinit();
 
     return true;
 }

@@ -23,7 +23,7 @@ bool toggle_led_repeating_callback(struct repeating_timer *t) {
 
 bool connect_to_wifi() {
     if (cyw43_arch_init_with_country(CYW43_COUNTRY_BRAZIL)) {
-        printf("Failed to initialize wifi hardware/driver");
+        printf("Failed to initialize wifi hardware/driver\n");
         return false;
     }
 
@@ -35,7 +35,7 @@ bool connect_to_wifi() {
     if (cyw43_arch_wifi_connect_timeout_ms(
             WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 15000
         )) {
-        printf("Failed to connect to wifi");
+        printf("Failed to connect to wifi\n");
         cyw43_arch_deinit();
         return false;
     }
@@ -52,7 +52,7 @@ bool connect_with_retries(uint8_t retries) {
         if (connected) {
             return true;
         } else {
-            printf("retrying in 10 seconds");
+            printf("retrying in 10 seconds\n");
             sleep_ms(10000);
         }
     }
@@ -67,9 +67,9 @@ bool send(DhtData *dht) {
         sprintf(buffer, "H_%f\nT_%f\n", dht->humidity, dht->temperature);
 
     if (written > 0) {
-        printf("wrote %d into the buffer", written);
+        printf("wrote %d into the buffer\n", written);
     } else {
-        printf("wrote 0 into the buffer, cancelling send");
+        printf("wrote 0 into the buffer, cancelling send\n");
         return false;
     }
 
@@ -84,7 +84,7 @@ bool send(DhtData *dht) {
         printf("TCP CONNECT failed\n");
         return false;
     } else {
-        printf("TCP CONNECT SUCCESS");
+        printf("TCP CONNECT SUCCESS\n");
     }
     return true;
 }
@@ -92,7 +92,7 @@ bool send(DhtData *dht) {
 void setup() {
     stdio_init_all();
 
-    printf("setting up");
+    printf("setting up\n");
 
     gpio_init(YELLOW_LED);
     gpio_set_dir(YELLOW_LED, GPIO_OUT);
@@ -126,7 +126,7 @@ int main() {
             }
         }
         for (uint8_t i = 0; i < 5; i++) {
-            printf("sleeping for 2 seconds");
+            printf("sleeping for 2 seconds\n");
             sleep_ms(2000);
         }
     }
