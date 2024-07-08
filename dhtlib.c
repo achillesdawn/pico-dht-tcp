@@ -96,15 +96,9 @@ void start_sequence() {
 
 void set_irq(bool enable) {
     if (enable) {
-        // gpio_set_irq_enabled(DHT_PIN, GPIO_IRQ_EDGE_RISE, true);
-        // irq_set_enabled(IO_IRQ_BANK0, true);
-        // gpio_set_irq_callback(gpio_callback);
-
         gpio_set_irq_enabled_with_callback(DHT_PIN, GPIO_IRQ_EDGE_RISE, true, gpio_callback);
     } else {
         gpio_set_irq_enabled_with_callback(DHT_PIN, GPIO_IRQ_EDGE_RISE, false, gpio_callback);
-        // gpio_set_irq_enabled(DHT_PIN, GPIO_IRQ_EDGE_RISE, false);
-        // irq_set_enabled(IO_IRQ_BANK0, false);
     }
 }
 
